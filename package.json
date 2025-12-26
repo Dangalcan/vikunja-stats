@@ -1,0 +1,10 @@
+{
+  "scripts": {
+    "start": "nodemon main.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "node-fetch": "^3.3.2",
+    "winston": "^3.19.0"
+  }
+}
