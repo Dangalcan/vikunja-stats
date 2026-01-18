@@ -13,15 +13,31 @@ async function get(endpoint) {
   const res = await fetch(`${BASE_URL}${endpoint}`, { headers });
 
   if (!res.ok) {
-    throw new Error(`Vikunja error ${res.status}`);
+    const errorBody = await res.text();
+    throw new Error(`Vikunja error ${res.status}: ${errorBody}`);
   }
 
-  return res.json();
+  return {
+    data: await res.json(),
+    headers: res.headers
+  };
 }
 
 export async function getMetricsSummary() {
-  const tasks = await get('/tasks');
+  let allTasks = [];
+  let currentPage = 1;
+  let totalPages = 1;
 
+  do {
+    const { data, headers: resHeaders } = await get(`/tasks/all?page=${currentPage}`);
+    allTasks = allTasks.concat(data);
+
+    const totalPagesHeader = resHeaders.get('x-pagination-total-pages');
+    totalPages = totalPagesHeader ? parseInt(totalPagesHeader, 10) : 1;
+    currentPage++;
+  } while (currentPage <= totalPages);
+
+  const tasks = allTasks;
   const completed = tasks.filter(t => t.done && t.done_at);
 
   const durations = completed.map(t => {
